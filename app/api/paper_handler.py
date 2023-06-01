@@ -164,7 +164,6 @@ def delete_paper(paper_id):
 @paper_handler.route(rule = '/mark', methods = ['POST'])
 def mark_paper():
     data = request.get_json(force = True)
-    print(data)
     user_id = data.get('user_id', None)
     paper_id = data.get('paper_id', None)
     mark = data.get('mark', None)

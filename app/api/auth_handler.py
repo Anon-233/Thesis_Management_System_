@@ -183,7 +183,6 @@ def change_password():
         return response_ok(data = user.serialize())
     return bad_request(msg = 'DataBase Error, Please Try Again')
 
-
 @auth_handler.route(rule = '/delete', methods = ['PUT'])
 def delete_user():
     data = request.get_json(force = True)
@@ -201,4 +200,3 @@ def delete_user():
     if user.commit():
         return response_ok(data = user.serialize())
     return bad_request(msg = 'DataBase Error, Please Try Again')
-

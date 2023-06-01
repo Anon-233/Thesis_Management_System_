@@ -17,7 +17,7 @@ cors.init_app(app, resource = {
 
 @app.route(rule='/')
 def home():
-    return '你为什么要访问这里😡'
+    return '你为什么要访问这里[恼]'
 
 if __name__ == '__main__':
     app.run()
