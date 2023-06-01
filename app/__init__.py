@@ -7,6 +7,7 @@ from .api.auth_handler import auth_handler
 from .api.library_handler import library_handler
 from .api.paper_handler import paper_handler
 from .api.comment_handler import comment_handler
+from .api.notice_handler import notice_handler
 
 from .models.user import init_user_db
 
@@ -23,6 +24,7 @@ def create_app(environment):
     app.register_blueprint(library_handler)
     app.register_blueprint(paper_handler)
     app.register_blueprint(comment_handler)
+    app.register_blueprint(notice_handler)
 
     with app.app_context():
         db.init_app(app)

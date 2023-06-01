@@ -5,7 +5,7 @@ from . import db
 class Comment(db.Model):
     __tablename__ = 'comment'
 
-    id = db.Column(db.Integer, primary_key = True)
+    id = db.Column(db.Integer, primary_key = True, unique = True)
     sender_id = db.Column(
         db.Integer, db.ForeignKey('user.id'), nullable = False
     )

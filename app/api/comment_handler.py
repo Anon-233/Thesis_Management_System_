@@ -4,6 +4,7 @@ from ..utils.responses import *
 
 from ..models import db
 from ..models.user import User
+from ..models.paper import Paper
 from ..models.comment import Comment
 
 comment_handler = Blueprint(
@@ -15,11 +16,21 @@ comment_handler = Blueprint(
 @comment_handler.route(rule = '/comment', methods = ['POST'])
 def add_comment():
     data = request.get_json(force = True)
-    user_id = data.get('user_id', -1)
-    paper_id = data.get('paper_id', -1)
+    user_id = data.get('user_id', None)
+    paper_id = data.get('paper_id', None)
     content = data.get('content', None)
-    if user_id == -1 or paper_id == -1 or content is None:
+    if user_id is None or paper_id is None or content is None:
         return bad_request(msg = 'Missing Field(s)')
+    user = User.query.filter(
+        User.id == user_id
+    ).first()
+    if user is None:
+        return bad_request(msg = 'Invalid User ID')
+    paper = Paper.query.filter(
+        Paper.id == paper_id
+    ).first()
+    if paper is None:
+        return bad_request(msg = 'Invalid User ID')
     comment = Comment.create(
         sender_id = user_id,
         paper_id = paper_id,
@@ -27,35 +38,42 @@ def add_comment():
     )
     return response_ok(data = comment.serialize())
 
-@comment_handler.route(rule = '/comment', methods = ['GET'])
-def get_comment():
-    data = request.get_json(force = True)
-    paper_id = data.get('paper_id', -1)
-    page_num = data.get('page_num', 0)
-    page_size = data.get('page_size', 10)
-    if paper_id == -1:
-        return bad_request(msg = 'Missing Field(s)')
+@comment_handler.route(rule = '/comment/<paper_id>/<page_num>/<page_size>', methods = ['GET'])
+def get_comment(paper_id, page_num, page_size):
+    paper_id = int(paper_id)
+    page_num = int(page_num)
+    page_size = int(page_size)
     comments = Comment.query.join(User).filter(
         Comment.paper_id == paper_id
     ).with_entities(
-        User.username, User.profile_photo, Comment.content, Comment.time
+        Comment.id, User.username, User.avatar, Comment.content, Comment.time, Comment.sender_id
+    ).order_by(
+        Comment.id.desc()
     ).offset(page_num * page_size).limit(page_size)
-    ret = [row._asdict() for row in comments]
+    ret = [{
+        'comment_id': row.id,
+        'username': row.username,
+        'avatar': row.avatar,
+        'content': row.content,
+        'time': row.time.strftime('%Y-%m-%d %H:%M:%S'),
+        'sender_id': row.sender_id
+    } for row in comments]
     return response_ok(data = ret)
 
 @comment_handler.route(rule = '/comment/<comment_id>', methods = ['DELETE'])
 def delete_comment(comment_id):
-    data = request.get_json(force = True)
-    user_id = data.get('user_id', -1)
-    if user_id == -1  or paper_id == -1:
-        return bad_request(msg = 'Missing Field(s)')
+    # data = request.get_json(force = True)
+    # user_id = data.get('user_id', None)
+    # if user_id is None:
+    #     return bad_request(msg = 'Missing Field(s)')
+    comment_id = int(comment_id)
     comment = Comment.query.filter(
         Comment.id == comment_id
     ).first()
     if comment is None:
         return bad_request(msg = 'Invalid Comment ID')
-    if comment.sender_id != user_id:
-        return bad_request(msg = 'Only the sender can delete it')
+    # if comment.sender_id != user_id:
+    #     return bad_request(msg = 'Only the sender can delete it')
     if comment.delete():
         return response_ok(data = comment.serialize())
     return bad_request(msg = 'DataBase Error')

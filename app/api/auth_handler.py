@@ -65,7 +65,21 @@ def auth_token():
     if user.available == False:
         return bad_request(msg = 'User Logged Out!')
     
-    return response_ok(data = user.serialize())
+    token_enc = token_encoder(id = user.id)
+    user_total = User.query.count()
+    library_total = Library.query.count()
+    paper_total = Paper.query.count()
+    click_total = db.session.query(func.sum(Paper.clicktime)).scalar()
+    if click_total is None : click_total = 0
+    user_info = dict(user.serialize(), **{'token': token_enc})
+    ret = {
+        'user_total': user_total,
+        'library_total': library_total,
+        'paper_total': paper_total,
+        'click_total': click_total,
+        'user_info': user_info
+    }
+    return response_ok(data = ret)
 
 @auth_handler.route(rule = '/register', methods = ['POST'])
 def auth_register():
@@ -89,7 +103,7 @@ def auth_register():
         User.username == username
     ).first()
     if user is not None:
-        return bad_request(msg = 'Username Already Exists')
+        return bad_request(msg = 'Username Already Exist')
 
     hash_password = hashlib.sha256(password.encode('utf-8')).hexdigest()
     user = User.create(

@@ -20,6 +20,9 @@ class  Paper(db.Model):
     )
     clicktime = db.Column(db.Integer, nullable = False, default = 0)
     mark = db.Column(db.Integer, nullable = False, default = 0)
+    created_date = db.Column(
+        db.DateTime(), nullable = False, default = db.func.current_timestamp()
+    )
 
     @classmethod
     def create(
@@ -75,7 +78,8 @@ class  Paper(db.Model):
             'creater_id': self.creater_id,
             'library_id': self.library_id,
             'clicktime': self.clicktime,
-            'mark': self.mark
+            'mark': self.mark,
+            'created_date': self.created_date.strftime('%Y-%m-%d')
         }
         return paper_dict
 

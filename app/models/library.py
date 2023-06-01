@@ -1,4 +1,5 @@
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy import func
 
 from . import db
 
@@ -6,25 +7,28 @@ class Library(db.Model):
     __tablename__ = 'library'
 
     id = db.Column(db.Integer, primary_key = True, unique = True)
-    title = db.Column(db.String(32), nullable = False)
+    title = db.Column(db.String(32), nullable = False, unique = True)
     topic = db.Column(db.String(256), nullable = False)
     description = db.Column(db.Text())
     is_public = db.Column(db.Boolean(), nullable = False, default = False)
     creater_id = db.Column(
         db.Integer, db.ForeignKey('user.id'), nullable = False
     )
-    cignificent = db.Column(db.String(256))
+    certificate = db.Column(db.String(256))
     orgnization_name = db.Column(db.String(32))
     orgnization_type = db.Column(db.String(32))
     orgnization_url = db.Column(db.String(256))
-    clicktime = db.Column(db.Integer, nullable = False, default = 0)
+    # clicktime = db.Column(db.Integer, nullable = False, default = 0)
     papernumber = db.Column(db.Integer, nullable = False, default = 0)
+    created_date = db.Column(
+        db.DateTime(), nullable = False, default = db.func.current_timestamp()
+    )
 
 
     @classmethod
     def create(
         cls, title: str, topic: str, description: str, is_public: bool, creater_id: int, 
-        cignificent: str, orgnization_name: str, orgnization_type: str, orgnization_url: str
+        certificate: str, orgnization_name: str, orgnization_type: str, orgnization_url: str
     ):
         library = None
         try:
@@ -34,7 +38,7 @@ class Library(db.Model):
                 description = description,
                 is_public = is_public,
                 creater_id = creater_id,
-                cignificent = cignificent,
+                certificate = certificate,
                 orgnization_name = orgnization_name,
                 orgnization_type = orgnization_type,
                 orgnization_url = orgnization_url
@@ -73,12 +77,13 @@ class Library(db.Model):
             'description': self.description,
             'is_public': self.is_public,
             'creater_id': self.creater_id,
-            'cignificent': self.cignificent,
+            'certificate': self.certificate,
             'orgnization_name': self.orgnization_name,
             'orgnization_type': self.orgnization_type,
             'orgnization_url': self.orgnization_url,
-            'clicktime': self.clicktime,
-            'papernumber': self.papernumber
+            # 'clicktime': self.clicktime,
+            'papernumber': self.papernumber,
+            'created_date': self.created_date.strftime('%Y-%m-%d')
         }
         return library_dict
     
