@@ -1,4 +1,5 @@
 from flask import Blueprint, request
+from sqlalchemy import func
 import hashlib
 
 from ..utils.auth.token_encoder import token_encoder
@@ -6,6 +7,8 @@ from ..utils.auth.token_decoder import token_decoder
 from ..utils.responses import *
 from ..models import db
 from ..models.user import User
+from ..models.library import Library
+from ..models.paper import Paper
 
 auth_handler = Blueprint(
     name = 'auth_handler', import_name = __name__, url_prefix = '/api/user'
@@ -29,7 +32,19 @@ def auth_login():
         return bad_request(msg = 'User Logged Out!')
     
     token_enc = token_encoder(id = user.id)
-    ret = dict(user.serialize(), **{'token': token_enc})
+    user_total = User.query.count()
+    library_total = Library.query.count()
+    paper_total = Paper.query.count()
+    click_total = db.session.query(func.sum(Paper.clicktime)).scalar()
+    if click_total is None : click_total = 0
+    user_info = dict(user.serialize(), **{'token': token_enc})
+    ret = {
+        'user_total': user_total,
+        'library_total': library_total,
+        'paper_total': paper_total,
+        'click_total': click_total,
+        'user_info': user_info
+    }
     return response_ok(data = ret)
 
 @auth_handler.route(rule = '/token', methods = ['POST'])

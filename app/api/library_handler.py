@@ -51,27 +51,32 @@ def create_library():
         return bad_request(msg = 'DataBase Error, Please Try Again')
     return response_ok(data = library.serialize())
 
-@library_handler.route(rule = '/', methods = ['GET'])
-def get_library():
+@library_handler.route(rule = '/<page_num>/<page_size>', methods = ['GET'])
+def get_library(page_num, page_size):
+    page_num = int(page_num)
+    page_size = int(page_size)
+    librarys = Library.query.offset(page_num * page_size).limit(page_size)
+    page_total = Library.query.count()
+    data = [library.serialize() for library in librarys]
+    ret = {'page_total': page_total, 'data': data}
+    return response_ok(data = ret)
+
+@library_handler.route(rule = '/search', methods = ['GET'])
+def search_library():
     data = request.get_json(force = True)
-    user_id = data.get('user_id', None)
     topic = data.get('topic', None)
+    title = data.get('title', None)
     page_num = data.get('page_num', 0)
     page_size = data.get('page_size', 10)
-
-    if user_id is None or topic is None:
+    if topic is None:
         return bad_request(msg = 'Missing Field(s)')
+    
     librarys = Library.query.filter(
-        # and_(
-        #     Library.topic == topic,
-        #     or_(
-        #         Library.is_public == True,
-        #         Library.creater_id == user_id
-        #     )
-        # )
-        Library.topic == topic
+        Library.topic == topic, Library.title.like(f'%{title}%')
     ).offset(page_num * page_size).limit(page_size)
-    page_total = Library.query.count()
+    page_total = Library.query.filter(
+        Library.topic == topic, Library.title.like(f'%{title}%')
+    ).count()
     data = [library.serialize() for library in librarys]
     ret = {'page_total': page_total, 'data': data}
     return response_ok(data = ret)

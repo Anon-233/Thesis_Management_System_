@@ -18,6 +18,8 @@ class  Paper(db.Model):
     library_id = db.Column(
         db.Integer, db.ForeignKey('library.id'), nullable = False
     )
+    clicktime = db.Column(db.Integer, nullable = False, default = 0)
+    mark = db.Column(db.Integer, nullable = False, default = 0)
 
     @classmethod
     def create(
@@ -71,7 +73,9 @@ class  Paper(db.Model):
             'pressdate': self.pressdate,
             'url': self.url,
             'creater_id': self.creater_id,
-            'library_id': self.library_id
+            'library_id': self.library_id,
+            'clicktime': self.clicktime,
+            'mark': self.mark
         }
         return paper_dict
 

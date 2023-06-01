@@ -1,5 +1,6 @@
 import uuid
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+import hashlib
 
 from . import db
 
@@ -18,6 +19,7 @@ class User(db.Model):
     phone = db.Column(db.String(32))
     location = db.Column(db.String(256))
     available = db.Column(db.Boolean(), nullable = False, default = True)
+    privilege = db.Column(db.Boolean(), nullable = False, default = False)
 
     MAX_USER_NUM = 10 ** 8
 
@@ -83,9 +85,30 @@ class User(db.Model):
             'gender': self.gender,
             'email': self.email,
             'phone': self.phone,
-            'location': self.location
+            'location': self.location,
+            'privilege': self.privilege
         }
         return user_dict
     
     def __str__(self):
         return str(self.serialize())
+
+def init_user_db():
+    hash_password = hashlib.sha256('adminadmin'.encode('utf-8')).hexdigest()
+    admin_user = User (
+        id = 0,
+        username = 'admin',
+        password = hash_password,
+        avatar = 'https://qny.littlexi.love/FhIybVlG_S0pd5zHY8Xye1LtLWpF',
+        firstname = '',
+        lastname = '',
+        birth = '',
+        gender = '',
+        email = '',
+        phone = '',
+        location = '',
+        available = True,
+        privilege = True
+    )
+    db.session.add(admin_user)
+    db.session.commit()

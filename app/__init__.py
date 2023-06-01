@@ -8,7 +8,12 @@ from .api.library_handler import library_handler
 from .api.paper_handler import paper_handler
 from .api.comment_handler import comment_handler
 
+from .models.user import init_user_db
+
 app = Flask(__name__)
+
+def init_db():
+    init_user_db()
 
 def create_app(environment):
     app.config.from_object(environment)
@@ -23,5 +28,8 @@ def create_app(environment):
         db.init_app(app)
         db.drop_all()
         db.create_all()
+
+        init_db()
+
         return app
     return None

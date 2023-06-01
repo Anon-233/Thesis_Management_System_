@@ -53,6 +53,22 @@ def get_paper():
     ret = {'page_total': page_total, 'data': data}
     return response_ok(data = ret)
 
+@paper_handler.route(rule = '/click', methods = ['POST'])
+def click_paper():
+    data = request.get_json(force = True)
+    paper_id = data.get('paper_id', None)
+
+    if paper_id is None:
+        return bad_request(msg = 'Invalid Paper ID')
+    paper = Paper.query.filter(
+        Paper.id == paper_id
+    ).first()
+
+    paper.clicktime = paper.clicktime + 1
+    if paper.commit():
+        return response_ok(data={})
+    return bad_request(msg = 'DataBase Error, Please Try Again')
+
 @paper_handler.route(rule = '/search', methods = ['GET'])
 def search_paper():
     pass

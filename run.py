@@ -15,10 +15,9 @@ cors.init_app(app, resource = {
     r'/*': {'origins': '*'}
 })
 
-@app.route(rule='/<id>')
-def home(id):
-    print('here', id)
-    return jsonify({'user1': 'for-test'})
+@app.route(rule='/')
+def home():
+    return '你为什么要访问这里😡'
 
 if __name__ == '__main__':
     app.run()
