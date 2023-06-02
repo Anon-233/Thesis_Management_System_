@@ -23,11 +23,13 @@ class  Paper(db.Model):
     created_date = db.Column(
         db.DateTime(), nullable = False, default = db.func.current_timestamp()
     )
+    reference = db.Column(db.String(256), nullable = False)
 
     @classmethod
     def create(
         cls, title: str, author: str, country: str, press: int,
-        pressdate: str, url: str, creater_id: int, library_id: int
+        pressdate: str, url: str, creater_id: int, library_id: int,
+        reference: str
     ):
         try:
             paper = Paper(
@@ -38,7 +40,8 @@ class  Paper(db.Model):
                 pressdate = pressdate,
                 url = url,
                 creater_id = creater_id,
-                library_id = library_id
+                library_id = library_id,
+                reference = reference
             )
             db.session.add(paper)
             db.session.commit()
@@ -79,9 +82,10 @@ class  Paper(db.Model):
             'library_id': self.library_id,
             'clicktime': self.clicktime,
             'mark': self.mark,
-            'created_date': self.created_date.strftime('%Y-%m-%d')
+            'created_date': self.created_date.strftime('%Y-%m-%d'),
+            'reference': self.reference
         }
         return paper_dict
 
     def __str__(self):
-        return str(self.serialize())    
+        return str(self.serialize())

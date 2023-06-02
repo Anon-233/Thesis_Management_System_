@@ -18,7 +18,7 @@ class Library(db.Model):
     orgnization_name = db.Column(db.String(32))
     orgnization_type = db.Column(db.String(32))
     orgnization_url = db.Column(db.String(256))
-    # clicktime = db.Column(db.Integer, nullable = False, default = 0)
+    clicktime = db.Column(db.Integer, nullable = False, default = 0)
     papernumber = db.Column(db.Integer, nullable = False, default = 0)
     created_date = db.Column(
         db.DateTime(), nullable = False, default = db.func.current_timestamp()
@@ -81,7 +81,7 @@ class Library(db.Model):
             'orgnization_name': self.orgnization_name,
             'orgnization_type': self.orgnization_type,
             'orgnization_url': self.orgnization_url,
-            # 'clicktime': self.clicktime,
+            'clicktime': self.clicktime,
             'papernumber': self.papernumber,
             'created_date': self.created_date.strftime('%Y-%m-%d')
         }
@@ -89,3 +89,4 @@ class Library(db.Model):
     
     def __str__(self):
         return str(self.serialize())
+    

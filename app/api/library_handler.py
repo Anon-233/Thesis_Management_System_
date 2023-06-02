@@ -71,20 +71,39 @@ def get_library(page_num, page_size):
     ret = {'page_total': page_total, 'data': data}
     return response_ok(data = ret)
 
-@library_handler.route(rule = '/search', methods = ['POST'])
-def search_library():
+@library_handler.route(rule = '/search/title', methods = ['POST'])
+def search_library_by_title():
     data = request.get_json(force = True)
-    title = data.get('title', None)
+    value = data.get('value', None)
     page_num = data.get('page_num', 0)
     page_size = data.get('page_size', 10)
-    if title is None:
+    if value is None:
         return bad_request(msg = 'Missing Field(s)')
     
     librarys = Library.query.filter(
-        Library.title.like(f'%{title}%')
+        Library.title.like(f'%{value}%')
     ).offset(page_num * page_size).limit(page_size)
     page_total = Library.query.filter(
-        Library.title.like(f'%{title}%')
+        Library.title.like(f'%{value}%')
+    ).count()
+    data = [library.serialize() for library in librarys]
+    ret = {'page_total': page_total, 'data': data}
+    return response_ok(data = ret)
+
+@library_handler.route(rule = '/search/topic', methods = ['POST'])
+def search_library_by_topic():
+    data = request.get_json(force = True)
+    value = data.get('value', None)
+    page_num = data.get('page_num', 0)
+    page_size = data.get('page_size', 10)
+    if value is None:
+        return bad_request(msg = 'Missing Field(s)')
+    
+    librarys = Library.query.filter(
+        Library.topic.like(f'%{value}%')
+    ).offset(page_num * page_size).limit(page_size)
+    page_total = Library.query.filter(
+        Library.topic.like(f'%{value}%')
     ).count()
     data = [library.serialize() for library in librarys]
     ret = {'page_total': page_total, 'data': data}

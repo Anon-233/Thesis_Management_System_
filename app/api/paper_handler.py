@@ -28,8 +28,11 @@ def create_paper():
     creater_id = data.get('creater_id', None)
     library_title = data.get('library_title', None)
     library_title = str(library_title)
+    reference = data.get('reference', None)
+    reference = str(reference)
 
-    if title is None or author is None or country is None or press is None or pressdate is None or creater_id is None or library_title is None:
+    if title is None or author is None or country is None or press is None or pressdate is None \
+    or creater_id is None or library_title is None or reference is None:
         return bad_request(msg = 'Missing Field(s)')
     user = User.query.filter(
         User.id == creater_id
@@ -55,6 +58,10 @@ def create_paper():
     )
     if paper is None:
         return bad_request(msg = 'DataBase Error, Please Try Again')
+    library.papernumber = library.papernumber + 1
+    if not library.commit():
+        bad_request(msg = 'DataBase Error, Please Try Again')
+
     return response_ok(data = paper.serialize())
 
 @paper_handler.route(rule = '/<library_id>/<page_num>/<page_size>', methods = ['GET'])
@@ -85,9 +92,18 @@ def click_paper(paper_id, user_id):
     ).first()
     if user is None:
         return bad_request(msg = 'Invalid User ID')
+    library_id = paper.library_id
+    library = Library.query.filter(
+        Library.id == library_id
+    ).first()
+    if library is None:
+        return bad_request(msg = 'Invalid Library ID')
 
     paper.clicktime = paper.clicktime + 1
     if not paper.commit():
+        bad_request(msg = 'DataBase Error, Please Try Again')
+    library.clicktime = library.clicktime + 1    
+    if not library.commit():
         bad_request(msg = 'DataBase Error, Please Try Again')
 
     papermark = PaperMark.query.filter(
@@ -101,9 +117,62 @@ def click_paper(paper_id, user_id):
         )
     return response_ok(data = papermark.serialize())
 
-@paper_handler.route(rule = '/search', methods = ['GET'])
-def search_paper():
-    pass
+@paper_handler.route(rule = '/search/title', methods = ['POST'])
+def search_paper_by_title():
+    data = request.get_json(force = True)
+    value = data.get('value', None)
+    page_num = data.get('page_num', 0)
+    page_size = data.get('page_size', 10)
+    if value is None:
+        return bad_request(msg = 'Missing Field(s)')
+    
+    papers = Paper.query.filter(
+        Paper.title.like(f'%{value}%')
+    ).offset(page_num * page_size).limit(page_size)
+    page_total = Paper.query.filter(
+        Paper.title.like(f'%{value}%')
+    ).count()
+    data = [paper.serialize() for paper in papers]
+    ret = {'page_total': page_total, 'data': data}
+    return response_ok(data = ret)
+
+@paper_handler.route(rule = '/search/author', methods = ['POST'])
+def search_paper_by_author():
+    data = request.get_json(force = True)
+    value = data.get('value', None)
+    page_num = data.get('page_num', 0)
+    page_size = data.get('page_size', 10)
+    if value is None:
+        return bad_request(msg = 'Missing Field(s)')
+    
+    papers = Paper.query.filter(
+        Paper.author.like(f'%{value}%')
+    ).offset(page_num * page_size).limit(page_size)
+    page_total = Paper.query.filter(
+        Paper.author.like(f'%{value}%')
+    ).count()
+    data = [paper.serialize() for paper in papers]
+    ret = {'page_total': page_total, 'data': data}
+    return response_ok(data = ret)
+
+@paper_handler.route(rule = '/search/press', methods = ['POST'])
+def search_paper_by_press():
+    data = request.get_json(force = True)
+    value = data.get('value', None)
+    page_num = data.get('page_num', 0)
+    page_size = data.get('page_size', 10)
+    if value is None:
+        return bad_request(msg = 'Missing Field(s)')
+    
+    papers = Paper.query.filter(
+        Paper.press.like(f'%{value}%')
+    ).offset(page_num * page_size).limit(page_size)
+    page_total = Paper.query.filter(
+        Paper.press.like(f'%{value}%')
+    ).count()
+    data = [paper.serialize() for paper in papers]
+    ret = {'page_total': page_total, 'data': data}
+    return response_ok(data = ret)
 
 @paper_handler.route(rule = '/<paper_id>', methods = ['PUT'])
 def update_paper(paper_id):
@@ -144,6 +213,12 @@ def delete_paper(paper_id):
     ).first()
     if paper is None:
         return bad_request(msg = 'Invalid Library ID')
+    library_id = paper.library_id
+    library = Library.query.filter(
+        Library.id == library_id
+    ).first()
+    if library is None:
+        return bad_request(msg = 'Invalid Library ID')
     
     papermarks = PaperMark.query.filter(
         PaperMark.paper_id == paper_id
@@ -156,6 +231,11 @@ def delete_paper(paper_id):
     for comment in comments:
         db.session.delete(comment)
     db.session.commit()
+
+    library.papernumber = library.papernumber - 1
+    # library.clicktime = library.clicktime - paper.clicktime
+    if not library.commit():
+        bad_request(msg = 'DataBase Error, Please Try Again')
 
     if paper.delete():
         return response_ok(data = paper.serialize())

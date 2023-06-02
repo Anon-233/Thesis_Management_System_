@@ -35,7 +35,7 @@ def auth_login():
     user_total = User.query.count()
     library_total = Library.query.count()
     paper_total = Paper.query.count()
-    click_total = db.session.query(func.sum(Paper.clicktime)).scalar()
+    click_total = db.session.query(func.sum(Library.clicktime)).scalar()
     if click_total is None : click_total = 0
     user_info = dict(user.serialize(), **{'token': token_enc})
     ret = {
@@ -69,7 +69,7 @@ def auth_token():
     user_total = User.query.count()
     library_total = Library.query.count()
     paper_total = Paper.query.count()
-    click_total = db.session.query(func.sum(Paper.clicktime)).scalar()
+    click_total = db.session.query(func.sum(Library.clicktime)).scalar()
     if click_total is None : click_total = 0
     user_info = dict(user.serialize(), **{'token': token_enc})
     ret = {
